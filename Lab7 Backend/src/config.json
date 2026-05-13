@@ -1,0 +1,20 @@
+{
+    "database": {
+        "host": "153.92.15.31",
+        "port": 3306,
+        "user": "u875409848_almario",
+        "password": "2qW^sUg=M",
+        "database": "u875409848_almario"
+    },
+    "secret": "SUPER_SECRET_KEY",
+    "emailform": "kennatandbryan@gmail.com",
+    "smtpOptions": {
+        "host": "smtp.gmail.com",
+        "port": 465,
+        "secure": true,
+        "auth": {
+            "user": "kennatandbryan@gmail.com",
+            "pass": "kentoy123"
+        }
+    }
+}
