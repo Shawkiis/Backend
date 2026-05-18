@@ -5,18 +5,18 @@ export default async function sendEmail({ to, subject, html, from }: any) {
     try {
         const emailFrom = process.env.EMAIL_FROM || config.emailform;
 
-        // Bypassing strict compiler errors by forcing 'as any' on the object
-        const transporterOptions: any = {
+        // Force casting values through unknown to bypass the strict string/number compiler type wall
+        const smtpPort = (process.env.SMTP_PORT || config.smtpOptions?.port || "587") as unknown as number;
+
+        const transporter = nodemailer.createTransport({
             host: process.env.SMTP_HOST || config.smtpOptions?.host || 'smtp-relay.brevo.com',
-            port: parseInt(process.env.SMTP_PORT || config.smtpOptions?.port || '587', 10),
+            port: smtpPort,
             secure: false,
             auth: {
                 user: process.env.SMTP_USER || config.smtpOptions?.auth?.user,
                 pass: process.env.SMTP_PASSWORD || config.smtpOptions?.auth?.pass
             }
-        };
-
-        const transporter = nodemailer.createTransport(transporterOptions);
+        } as any);
 
         console.log(`Attempting to send email to: ${to}`);
         await transporter.sendMail({ from: emailFrom, to, subject, html });
