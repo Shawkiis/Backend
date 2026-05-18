@@ -45,9 +45,9 @@ function refreshToken(req: any, res: any, next: any) {
     const token = req.cookies.refreshToken;
     const ipAddress = req.ip;
 
-    // ADD THIS SAFETY GUARD: If there's no cookie, stop here and don't crash the DB!
+    // FIX: Instead of status(401), send an empty 200 OK so the frontend doesn't freeze!
     if (!token) {
-        return res.status(401).json({ message: 'No refresh token cookie found' });
+        return res.status(200).json({ message: 'No active session cookie found. Staying on public page.' });
     }
 
     accountService.refreshToken({ token, ipAddress })
