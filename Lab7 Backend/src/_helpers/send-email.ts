@@ -1,14 +1,15 @@
 import nodemailer from "nodemailer";
 import config from "../config.json";
-import dns from "dns";
 
 export default async function sendEmail({ to, subject, html, from }: any) {
     try {
         const emailFrom = process.env.EMAIL_FROM || config.emailform;
 
-        const smtpConfig: any = {
-            host: process.env.SMTP_HOST || config.smtpOptions?.host || 'smtp-relay.brevo.com',
-            port: parseInt(process.env.SMTP_PORT || config.smtpOptions?.port || '587', 10),
+        // Bypass DNS entirely by using Brevo's direct IPv4 address 
+        // This stops Render's IPv6 ENETUNREACH error without triggering TypeScript type errors.
+        const transporter = nodemailer.createTransport({
+            host: '185.107.232.248', 
+            port: 587,
             secure: false,
             auth: {
                 user: process.env.SMTP_USER || config.smtpOptions?.auth?.user,
@@ -17,16 +18,11 @@ export default async function sendEmail({ to, subject, html, from }: any) {
             connectionTimeout: 10000,
             greetingTimeout: 10000,
             socketTimeout: 10000,
-            // Strictly forcing types here using type assertions to prevent compilation failures
-            lookup: (hostname: any, options: any, callback: any) => {
-                dns.resolve4(hostname as string, (err: NodeJS.ErrnoException | null, addresses: string[]) => {
-                    if (err) return callback(err, '', 4);
-                    callback(null, addresses[0], 4);
-                });
+            tls: {
+                // Tells nodemailer to verify the certificate for Brevo since we connect via direct IP
+                servername: 'smtp-relay.brevo.com'
             }
-        };
-
-        const transporter = nodemailer.createTransport(smtpConfig);
+        });
 
         console.log(`Attempting to send email to: ${to}`);
         await transporter.sendMail({ from: emailFrom, to, subject, html });
