@@ -44,6 +44,12 @@ function authenticate(req: any, res: any, next: any) {
 function refreshToken(req: any, res: any, next: any) {
     const token = req.cookies.refreshToken;
     const ipAddress = req.ip;
+
+    // ADD THIS SAFETY GUARD: If there's no cookie, stop here and don't crash the DB!
+    if (!token) {
+        return res.status(401).json({ message: 'No refresh token cookie found' });
+    }
+
     accountService.refreshToken({ token, ipAddress })
         .then(({ refreshToken, ...account }: any) => {
             setTokenCookie(res, refreshToken);
@@ -51,6 +57,7 @@ function refreshToken(req: any, res: any, next: any) {
         })
         .catch(next);
 }
+
 
 function revokeTokenSchema(req: any, res: any, next: any) {
     const schema = Joi.object({
