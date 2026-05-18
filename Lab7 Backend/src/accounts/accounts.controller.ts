@@ -45,9 +45,10 @@ function refreshToken(req: any, res: any, next: any) {
     const token = req.cookies.refreshToken;
     const ipAddress = req.ip;
 
-    // FIX: Instead of status(401), send an empty 200 OK so the frontend doesn't freeze!
+    // FIX: Send a 204 No Content status. 
+    // This tells Angular there is no session active, allowing it to load the page peacefully.
     if (!token) {
-        return res.status(200).json({ message: 'No active session cookie found. Staying on public page.' });
+        return res.sendStatus(204);
     }
 
     accountService.refreshToken({ token, ipAddress })
@@ -70,7 +71,11 @@ function revokeToken(req: any, res: any, next: any) {
     const token = req.body.token || req.cookies.refreshToken;
     const ipAddress = req.ip;
 
-    if (!token) return res.status(400).json({ message: 'Token is required' });
+    // FIX: If no token is provided to revoke, stop here quietly!
+    // This stops the unhandled 500 crash from breaking the Angular frontend boot process.
+    if (!token) {
+        return res.status(200).json({ message: 'No active session token found to revoke.' });
+    }
 
     if (!req.user.ownsToken(token) && req.user.role !== Role.Admin) {
         return res.status(401).json({ message: 'Unauthorized' });
